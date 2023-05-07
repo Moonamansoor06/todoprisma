@@ -4,15 +4,14 @@ import { db } from "@vercel/postgres";
 
 export  async function GET(
     request: NextApiRequest,
-    response: NextApiResponse
+    response: NextApiResponse,{ query }: {query:{qid:string}}
   ) {
     const client = await db.connect();
   
     try {  
-      const b=    request.body
-    const { query: { id } } = request;
+      const {qid}=query
     
-      const { rows } = await client.query(`SELECT * FROM books WHERE id = ${id}`);
+      const { rows } = await client.query(`SELECT * FROM books WHERE id = ${qid}`);
       const book = rows[0];
     
       return NextResponse.json(book);
