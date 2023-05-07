@@ -1,9 +1,9 @@
 import { NextApiRequest,NextApiResponse } from "next";
-import { NextResponse } from "next/server";
+import { NextResponse,NextRequest } from "next/server";
 import { db } from "@vercel/postgres";
 
 export  async function GET(
-    request: NextApiRequest,
+    request: NextRequest,
     response: NextApiResponse,{ query }: {query:{qid:string}}
   ) {
     const client = await db.connect();
