@@ -44,7 +44,7 @@ const url = `${baseUrl}/api/books`;
   }
 }
 
-export async function GET(req: NextApiRequest, res: NextResponse) {
+export async function GET( res: NextResponse) {
   const client = await db.connect();
 
   try {
@@ -60,8 +60,8 @@ export async function GET(req: NextApiRequest, res: NextResponse) {
 }
 
 export async function PUT(
-  request: NextApiRequest,
-  response: NextApiResponse,
+ 
+  response: NextResponse,
   {
     params
   } : {
@@ -82,14 +82,14 @@ export async function PUT(
     `, [bookname, author, booktype, price, qty, isbn, id];
   } catch (error) {
     console.error(error);
-    return response.status(500).json({ error });
+    return NextResponse.json({error}) ;
   } finally {
     client.release();
   }
 
   const { rows } = await client.query(`SELECT * FROM books`);
   const books = rows;
-  return response.status(200).json({ books });
+  return NextResponse.json({ books });
 }
 
 export async function DELETE(
