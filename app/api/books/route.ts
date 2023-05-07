@@ -1,5 +1,5 @@
 import { NextApiResponse, NextApiRequest } from 'next';
-import { NextResponse } from 'next/server';
+import { NextRequest,NextResponse } from 'next/server';
 import { db } from '@vercel/postgres';
 
 export async function POST({
@@ -8,7 +8,7 @@ export async function POST({
 } : {
   params: { id: string ,bookname:string, author:string, booktype:string, price:string,
      qty:number, isbn:string}
-},   response:NextApiResponse,) {
+},   request:NextRequest,response:NextApiResponse,) {
     
     const baseUrl = process.env.API_BASE_URL;
 const url = `${baseUrl}/api/books`;
@@ -44,7 +44,7 @@ const url = `${baseUrl}/api/books`;
   }
 }
 
-export async function GET( res: NextResponse) {
+export async function GET( request:NextRequest , res: NextResponse) {
   const client = await db.connect();
 
   try {
@@ -60,7 +60,7 @@ export async function GET( res: NextResponse) {
 }
 
 export async function PUT(
- 
+ request:NextRequest,
   response: NextResponse,
   {
     params
