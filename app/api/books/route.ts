@@ -1,119 +1,84 @@
-import { NextApiResponse, NextApiRequest } from 'next';
-import { NextRequest,NextResponse } from 'next/server';
-import { db } from '@vercel/postgres';
+import { NextApiRequest, NextApiResponse } from 'next'
+import { Pool } from 'pg'
 
-export async function POST({
-
-  params
-} : {
-  params: { id: string ,bookname:string, author:string, booktype:string, price:string,
-     qty:number, isbn:string}
-},   request:NextRequest,response:NextApiResponse,) {
-    
-    const baseUrl = process.env.API_BASE_URL;
-const url = `${baseUrl}/api/books`;
-  const client = await db.connect();
-  
- // console.log("request body post",request.body)
-
-  try {
-    const {bookname,booktype,author,price,qty,isbn  } = params;
-   
-    await client.sql`
-      INSERT INTO books (bookname, author, booktype, price, qty, isbn)
-      VALUES (${bookname}, ${author}, ${booktype}, ${price}, ${qty}, ${isbn})
-      RETURNING *
-    `, [bookname, author, booktype, price, qty, isbn];
-  } catch (error) {
-    console.error(error);
-    return response.status(500).json({ error });
-  } finally {
-    client.release();
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
   }
+})
 
-  const client2 = await db.connect();
-  try {
-    const { rows } = await client2.sql`SELECT * FROM books`;
-    const books = rows;
-    return response.status(200).json({ books });
-  } catch (error) {
-    console.error(error);
-    return response.json(error);
-  } finally {
-    client2.release();
-  }
-}
-
-export async function GET( request:NextRequest , res: NextResponse) {
-  const client = await db.connect();
-
-  try {
-    const { rows } = await client.sql`SELECT * FROM books`;
-    const books = rows;
-    return NextResponse.json(books);
-  } catch (error) {
-    console.error(error);
-    return res.json();
-  } finally {
-    client.release();
-  }
-}
-
-export async function PUT(
- request:NextRequest,
-  response: NextResponse,
-  {
-    params
-  } : {
-    params: { id: string ,bookname:string, author:string, booktype:string, price:string,
-      qty:number, isbn:string}
-  },
-  query:{qid:string})
-{
-  const client = await db.connect();
-
-  try {
-    
-    const { id, bookname, author, booktype, price, qty, isbn } = params;
-    const {qid}=query
-    await client.sql`
-      UPDATE books SET bookname = $1, author = $2, booktype = $3, price = $4, qty = $5, isbn = $6
-      WHERE id = ${qid}
-    `, [bookname, author, booktype, price, qty, isbn, id];
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({error}) ;
-  } finally {
-    client.release();
-  }
-
-  const { rows } = await client.query(`SELECT * FROM books`);
-  const books = rows;
-  return NextResponse.json({ books });
-}
-
-export async function DELETE(
-  request: NextApiRequest,
-  response: NextApiResponse,
-  {
-    params
-  } : {
-    params: { id: string ,bookname:string, author:string, booktype:string, price:string,
-      qty:number, isbn:string}
-  },
-  query:{qid:string}
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
 ) {
-  const client = await db.connect();
+  const { method } = req
 
-  try {
-    const {id}=params
-    const { qid } = query;
-    await client.sql`DELETE FROM books WHERE id = ${id}`, [id];
-  } catch (error) {
-    console.error(error);
-    return response.status(500).json({ error });
-  } finally {
-    client.release();
+  switch (method) {
+    case 'GET':
+      try {
+        const client = await pool.connect()
+        const result = await client.query('SELECT * FROM books')
+        const books = result.rows
+        client.release()
+
+        res.status(200).json(books)
+      } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: 'Internal server error' })
+      }
+      break
+    case 'POST':
+      try {
+        const { bookname, author, booktype, price, qty, isbn } = req.body
+
+        if (!bookname || !author || !booktype || !price || !qty || !isbn) {
+          res.status(400).json({ message: 'Invalid request' })
+          return
+        }
+
+        const client = await pool.connect()
+        const result = await client.query(
+          `INSERT INTO books (bookname, author, booktype, price, qty, isbn) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+          [bookname, author, booktype, price, qty, isbn]
+        )
+        const book = result.rows[0]
+        client.release()
+
+        res.status(201).json(book)
+      } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: 'Internal server error' })
+      }
+      break
+    case 'DELETE':
+      try {
+        const { id } = req.query
+
+        if (!id) {
+          res.status(400).json({ message: 'Invalid request' })
+          return
+        }
+
+        const client = await pool.connect()
+        const result = await client.query(
+          `DELETE FROM books WHERE id=${id} RETURNING *`
+        )
+        const book = result.rows[0]
+        client.release()
+
+        if (!book) {
+          res.status(404).json({ message: 'Book not found' })
+          return
+        }
+
+        res.status(200).json(book)
+      } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: 'Internal server error' })
+      }
+      break
+    default:
+      res.status(405).json({ message: 'Method not allowed' })
   }
-
 }
