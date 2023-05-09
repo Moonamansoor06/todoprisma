@@ -1,15 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../../utils/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req
-
+console.log("books is",prisma.books)
   switch (method) {
     case 'GET':
       try {
-        const books = await prisma.book.findMany()
+        const books = await prisma.books.findMany()
         res.status(200).json(books)
       } catch (error) {
         console.error(error)
@@ -22,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!bookname || !author || !booktype || !price || !qty || !isbn) {
           res.status(400).json({ message: 'Missing required fields' })
         } else {
-          const newBook = await prisma.book.create({
+          const newBook = await prisma.books.create({
             data: {
               bookname,
               author,
