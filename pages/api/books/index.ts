@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { query } from '../../../utils/database'
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req
@@ -7,11 +9,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   switch (method) {
     case 'GET':
       try {
-        const { rows: books } = await query('SELECT * FROM books')
+        const books = await prisma.book.findMany()
         res.status(200).json(books)
       } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'error from server internally' })
+        res.status(500).json({ message: 'Internal server error' })
       }
       break
     case 'POST':
@@ -20,13 +22,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!bookname || !author || !booktype || !price || !qty || !isbn) {
           res.status(400).json({ message: 'Missing required fields' })
         } else {
-          const { rows: book } = await query(
-            `INSERT INTO books (bookname, author, booktype, price, qty, isbn)
-             VALUES (${bookname}, ${author}, ${booktype}, ${price}, ${qty}, ${isbn})
-              RETURNING *`,
-            [bookname, author, booktype, price, qty, isbn]
-          )
-          res.status(201).json(book[0])
+          const newBook = await prisma.book.create({
+            data: {
+              bookname,
+              author,
+              booktype,
+              price,
+              qty,
+              isbn
+            }
+          })
+          res.status(201).json(newBook)
         }
       } catch (error) {
         console.error(error)
