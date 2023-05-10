@@ -16,22 +16,24 @@ console.log("books is",prisma.books)
       break
     case 'POST':
       try {
-        const { bookname, author, booktype, price, qty, isbn } = req.body
-        if (!bookname || !author || !booktype || !price || !qty || !isbn) {
-          res.status(400).json({ message: 'Missing required fields' })
-        } else {
+        const { id,bookname, author, booktype, price, qty, isbn } = req.body
+        // if (!id||!bookname || !author || !booktype || !price || !qty || !isbn) {
+        //    res.status(400).json({ message: 'Missing required fields' })
+        //  } else {
           const newBook = await prisma.books.create({
             data: {
+              id,
               bookname,
               author,
               booktype,
               price,
               qty,
-              isbn
+              isbn,
+              
             }
           })
           res.status(201).json(newBook)
-        }
+       //  }
       } catch (error) {
         console.error(error)
         res.status(500).json({ message: 'Internal server error' })
@@ -39,6 +41,6 @@ console.log("books is",prisma.books)
       break
     default:
       res.setHeader('Allow', ['GET', 'POST'])
-      res.status(405).json({ message: `Method ${method} not allowed` })
+      //res.status(405).json({ message: `Method ${method} not allowed` })
   }
 }

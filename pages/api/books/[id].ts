@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '../../../utils/prisma'
+import {books} from '@prisma/client'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method, query: { id } } = req
@@ -20,10 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       break
     case 'PUT':
       try {
-        const { bookname, author, booktype, price, qty, isbn } = req.body
-        if (!bookname || !author || !booktype || !price || !qty || !isbn) {
-          res.status(400).json({ message: 'Missing required fields' })
-        } else {
+         const { bookname, author, booktype, price, qty, isbn } = req.body
+        // if (!bookname || !author || !booktype || !price || !qty || !isbn) {
+        //   res.status(400).json({ message: 'Missing required fields' })
+        // } else {
           const updatedBook = await prisma.books.update({
             where: { id: Number(id) },
             data: {
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           })
           res.status(200).json(updatedBook)
-        }
+      //  }
       } catch (error) {
         console.error(error)
         res.status(500).json({ message: 'Internal server error' })
@@ -44,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       break
       case 'DELETE':
   try {
-    const book = await prisma.book.delete({ where: { id: Number(id) } })
+    const book = await prisma.books.delete({ where: { id: Number(id) } })
     if (book) {
       res.status(204).send('')
     } else {
