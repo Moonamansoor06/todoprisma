@@ -16,13 +16,13 @@ console.log("books is",prisma.books)
       break
     case 'POST':
       try {
-        const { id,bookname, author, booktype, price, qty, isbn } = req.body
+        const { bookname, author, booktype, price, qty, isbn } = req.body
+        console.log("request is",req.body)
         // if (!id||!bookname || !author || !booktype || !price || !qty || !isbn) {
         //    res.status(400).json({ message: 'Missing required fields' })
         //  } else {
           const newBook = await prisma.books.create({
             data: {
-              id,
               bookname,
               author,
               booktype,
@@ -33,6 +33,7 @@ console.log("books is",prisma.books)
             }
           })
           res.status(201).json(newBook)
+          res.setHeader('content-type','application/Json')
        //  }
       } catch (error) {
         console.error(error)

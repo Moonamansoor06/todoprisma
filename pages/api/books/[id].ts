@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '../../../utils/prisma'
-import {books} from '@prisma/client'
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method, query: { id } } = req
