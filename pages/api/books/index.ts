@@ -1,5 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '../../../utils/prisma'
+//import { prisma } from '../../../utils/prisma'
+import { PrismaClient } from '@prisma/client'
+
+export const prisma = new PrismaClient({
+  log: ['query'],
+})
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req
@@ -12,32 +18,36 @@ console.log("books is",prisma.books)
       } catch (error) {
         console.error(error)
         res.status(500).json({ message: 'Internal server error' })
+      }finally {
+        await prisma.$disconnect() // Disconnect the prisma client after each request
       }
       break
     case 'POST':
       try {
         const { bookname, author, booktype, price, qty, isbn } = req.body
         console.log("request is",req.body)
-        // if (!id||!bookname || !author || !booktype || !price || !qty || !isbn) {
-        //    res.status(400).json({ message: 'Missing required fields' })
-        //  } else {
+        if (!bookname || !author || !booktype || !price || !qty || !isbn) {
+           res.status(400).json({ message: 'Missing required fields' })
+         } else {
           const newBook = await prisma.books.create({
             data: {
-              bookname,
-              author,
-              booktype,
-              price,
-              qty,
-              isbn,
+              bookname:bookname,
+              booktype:booktype,
+              author:author,
+              qty:qty,
+              isbn:isbn,
+              price:price,
               
             }
           })
           res.status(201).json(newBook)
           res.setHeader('content-type','application/Json')
-       //  }
+        }
       } catch (error) {
         console.error(error)
         res.status(500).json({ message: 'Internal server error' })
+      }finally {
+        await prisma.$disconnect() // Disconnect the prisma client after each request
       }
       break
     default:

@@ -1,5 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '../../../utils/prisma'
+//import { prisma } from '../../../utils/prisma'
+import { PrismaClient } from '@prisma/client'
+
+export const prisma = new PrismaClient({
+  log: ['query'],
+})
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -17,6 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (error) {
         console.error(error)
         res.status(500).json({ message: 'Internal server error' })
+      }finally {
+        await prisma.$disconnect() // Disconnect the prisma client after each request
       }
       break
     case 'PUT':
@@ -54,6 +61,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: 'Internal server error' })
+  }finally {
+    await prisma.$disconnect() // Disconnect the prisma client after each request
   }
   break;
       }}

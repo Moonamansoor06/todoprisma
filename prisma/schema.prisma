@@ -10,11 +10,13 @@ model User {
 model books {
   id       Int     @id @default(autoincrement())
   bookname String
-  author   String
   booktype String
-  price   Int
-  qty      Int
+  author   String
+   qty      Int 
   isbn     String
+  price   Int
+ 
+  
 }
 generator client {
   provider = "prisma-client-js"
