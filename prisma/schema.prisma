@@ -1,23 +1,19 @@
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL")
+  url  	= env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+generator client {
+  provider = "prisma-client-js"
 }
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
   name  String?
 }
-model books {
-  id       Int     @id @default(autoincrement())
-  bookname String
-  booktype String
-  author   String
-   qty      Int 
-  isbn     String
-  price   Int
- 
-  
-}
-generator client {
-  provider = "prisma-client-js"
+model todo {
+  id         String    @id @default(uuid()) @db.Uuid
+  name       String
+  completed  Boolean
+  created_at DateTime  @default(now())
 }
